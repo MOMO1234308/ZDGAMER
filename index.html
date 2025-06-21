@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZG</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+            transition: all 0.3s ease;
+        }
+        
+        body {
+            overflow-x: hidden;
+            background-color: #1a1a1a;
+        }
+        
+        /*  √ÀÌ— «·÷—» */
+        .screen-shake {
+            animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+        }
+        
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-1px, 0, 0); }
+            20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+            40%, 60% { transform: translate3d(4px, 0, 0); }
+        }
+        
+        /* ‘«‘… «· Õ„Ì· */
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #0a0a12;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .discord-logo, .youtube-logo {
+            width: 100px;
+            height: 100px;
+            margin: 15px;
+            opacity: 0;
+            filter: drop-shadow(0 0 5px rgba(255,255,255,0.7));
+        }
+        
+        .loading-text {
+            color: #fff;
+            font-size: 1.5rem;
+            margin-top: 20px;
+            text-shadow: 0 0 10px #55ffff;
+            opacity: 0;
+        }
+        
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+            }
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+        
+        @keyframes glow {
+            0% { text-shadow: 0 0 5px #55ffff; }
+            50% { text-shadow: 0 0 20px #55ffff; }
+            100% { text-shadow: 0 0 5px #55ffff; }
+        }
+        
+        /* «·’›Õ… «·—∆Ì”Ì… */
+        .main-page {
+            display: none;
+            position: relative;
+            width: 100%;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #000000, #1a1a1a, #333333);
+            color: #fff;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .zg-title {
+            font-size: 5rem;
+            font-weight: bold;
+            margin: 30px 0;
+            color: #ffaa00;
+            text-shadow: 3px 3px 0 #8b5a00, 5px 5px 0 #000;
+            position: relative;
+            z-index: 1;
+            animation: glow 2s infinite;
+        }
+        
+        .options-container {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 50px;
+            flex-wrap: wrap;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .option-box {
+            width: 250px;
+            height: 300px;
+            background-color: rgba(40,40,40,0.8);
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 0 15px rgba(0,0,0,0.5);
+            border: 2px solid #555;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .option-box:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 25px rgba(85,255,255,0.4);
+            border-color: #55ffff;
+        }
+        
+        .option-box::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(
+                to bottom right,
+                transparent 45%,
+                rgba(85,255,255,0.3) 50%,
+                transparent 55%
+            );
+            transform: rotate(45deg);
+            transition: all 0.5s;
+            opacity: 0;
+        }
+        
+        .option-box:hover::before {
+            animation: shine 1.5s;
+        }
+        
+        @keyframes shine {
+            0% { left: -50%; opacity: 0; }
+            50% { opacity: 1; }
+            100% { left: 150%; opacity: 0; }
+        }
+        
+        .option-logo {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 20px;
+            filter: drop-shadow(0 0 5px rgba(255,255,255,0.5));
+        }
+        
+        .option-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #fff;
+            text-shadow: 2px 2px 0 #000;
+        }
+        
+        .action-button {
+            background: linear-gradient(to bottom, #727272, #3b3b3b);
+            border: 2px solid #000;
+            color: #fff;
+            padding: 10px 20px;
+            font-size: 1rem;
+            text-shadow: 2px 2px 0 #000;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .action-button:hover {
+            background: linear-gradient(to bottom, #8a8a8a, #4d4d4d);
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.5), 0 0 10px rgba(85,255,255,0.5);
+        }
+        
+        .action-button:active {
+            transform: translateY(2px);
+        }
+        
+        /*  ’„Ì„ «·œÌ”ﬂÊ—œ */
+        .discord-style {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #36393f;
+            color: #fff;
+            z-index: 900;
+            padding: 20px;
+        }
+        
+        .discord-style::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(54,57,63,0.9);
+            z-index: -1;
+        }
+        
+        .discord-sidebar {
+            width: 250px;
+            height: 100%;
+            background-color: rgba(32,34,37,0.8);
+            position: fixed;
+            left: 0;
+            top: 0;
+            padding: 20px;
+            border-right: 2px solid #555;
+        }
+        
+        .discord-main {
+            margin-left: 250px;
+            padding: 20px;
+        }
+        
+        .discord-header {
+            font-size: 2rem;
+            margin-bottom: 30px;
+            color: #7289da;
+            text-shadow: 2px 2px 0 #000;
+            border-bottom: 2px solid #7289da;
+            padding-bottom: 10px;
+        }
+        
+        .discord-rules {
+            background-color: rgba(47,49,54,0.8);
+            padding: 20px;
+            border-radius: 5px;
+            max-width: 800px;
+            margin: 0 auto;
+            border: 2px solid #555;
+            box-shadow: 0 0 15px rgba(0,0,0,0.5);
+        }
+        
+        .discord-rule {
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #40444b;
+        }
+        
+        .discord-rule h3 {
+            color: #7289da;
+            margin-bottom: 5px;
+        }
+        
+        .discord-rule p {
+            color: #dcddde;
+        }
+        
+        .back-button {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(to bottom, #727272, #3b3b3b);
+            color: white;
+            border: 2px solid #000;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            text-shadow: 1px 1px 0 #000;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+        }
+        
+        .back-button:hover {
+            background: linear-gradient(to bottom, #8a8a8a, #4d4d4d);
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.5), 0 0 10px rgba(255,170,0,0.5);
+        }
+        
+        /*  ’„Ì„ «·ÌÊ ÌÊ» */
+        .youtube-style {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #181818;
+            color: #fff;
+            z-index: 900;
+        }
+        
+        .youtube-style::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(24,24,24,0.9);
+            z-index: -1;
+        }
+        
+        .youtube-header {
+            height: 60px;
+            background-color: rgba(32,32,32,0.8);
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            border-bottom: 2px solid #555;
+        }
+        
+        .youtube-logo-small {
+            height: 30px;
+            filter: drop-shadow(0 0 5px rgba(255,0,0,0.5));
+        }
+        
+        .youtube-main {
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .youtube-video {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: rgba(0,0,0,0.7);
+            padding: 10px;
+            border: 2px solid #555;
+            box-shadow: 0 0 20px rgba(0,0,0,0.7);
+        }
+        
+        .youtube-video iframe {
+            width: 100%;
+            height: 450px;
+            border: none;
+        }
+        
+        /* ‘—Ìÿ «· ﬁœ„ */
+        .progress-bar {
+            width: 300px;
+            height: 20px;
+            background-color: #333;
+            border: 2px solid #000;
+            margin-top: 20px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            width: 0;
+            background: linear-gradient(to right, #55ffff, #00aaff);
+            transition: width 0.3s;
+        }
+        
+        /*  √ÀÌ— «·÷Ê¡ */
+        .light-effect {
+            position: fixed;
+            width: 100px;
+            height: 100px;
+            background: radial-gradient(circle, rgba(85,255,255,0.3) 0%, rgba(85,255,255,0) 70%);
+            pointer-events: none;
+            z-index: 10;
+            transform: translate(-50%, -50%);
+        }
+    </style>
+</head>
+<body>
+    <!-- ‘«‘… «· Õ„Ì· -->
+    <div class="loading-screen">
+        <img src="https://assets-global.website-files.com/6257adef93867e50d84d30e2/636e0a6a49cf127bf92de1e2_icon_clyde_blurple_RGB.png" alt="Discord Logo" class="discord-logo">
+        <img src="https://www.freepnglogos.com/uploads/youtube-logo-red-hd-13.png" alt="YouTube Logo" class="youtube-logo">
+        <div class="loading-text">Ã«— «· Õ„Ì·...</div>
+        <div class="progress-bar">
+            <div class="progress-fill"></div>
+        </div>
+    </div>
+    
+    <!-- «·’›Õ… «·—∆Ì”Ì… -->
+    <div class="main-page">
+        <h1 class="zg-title">ZG</h1>
+        
+        <div class="options-container">
+            <div class="option-box" id="discord-option">
+                <img src="https://assets-global.website-files.com/6257adef93867e50d84d30e2/636e0a6a49cf127bf92de1e2_icon_clyde_blurple_RGB.png" alt="Discord" class="option-logo">
+                <h2 class="option-title">«·œÌ”ﬂÊ—œ</h2>
+            </div>
+            
+            <div class="option-box" id="youtube-option">
+                <img src="https://www.freepnglogos.com/uploads/youtube-logo-red-hd-13.png" alt="YouTube" class="option-logo">
+                <h2 class="option-title">«·ÌÊ ÌÊ»</h2>
+            </div>
+        </div>
+    </div>
+    
+    <!--  ’„Ì„ «·œÌ”ﬂÊ—œ -->
+    <div class="discord-style" id="discord-style">
+        <button class="back-button action-button" id="back-from-discord">«·⁄Êœ…</button>
+        
+        <div class="discord-sidebar">
+            <h3 style="color: #7289da; text-align: center; margin-bottom: 20px;">ZG</h3>
+            <div style="color: #fff; text-align: center; font-size: 0.9rem;">
+                «·”Ì—›— «·—”„Ì
+            </div>
+        </div>
+        
+        <div class="discord-main">
+            <h1 class="discord-header">ﬁÊ«‰Ì‰ ”Ì—›— «·œÌ”ﬂÊ—œ</h1>
+            
+            <div class="discord-rules">
+                <div class="discord-rule">
+                    <h3>1. «Õ —„ «··«⁄»Ì‰ «·¬Œ—Ì‰</h3>
+                    <p>„„‰Ê⁄ «· „ÌÌ“ √Ê «·≈”«¡… ·√Ì ⁄÷Ê ›Ì «·”Ì—›— »√Ì ‘ﬂ· „‰ «·√‘ﬂ«·.</p>
+                </div>
+                
+                <div class="discord-rule">
+                    <h3>2. „„‰Ê⁄ «·€‘ √Ê «·«” €·«·</h3>
+                    <p>„„‰Ê⁄ «” Œœ«„ √Ì »—«„Ã √Ê √œÊ«  €Ì— „‘—Ê⁄… ›Ì «·”Ì—›—.</p>
+                </div>
+                
+                <div class="discord-rule">
+                    <h3>3. ·« ··”»«„ √Ê «·›·Êœ</h3>
+                    <p>„„‰Ê⁄ ≈—”«· —”«∆· „ ﬂ——… √Ê €Ì— „—€Ê» ›ÌÂ« ›Ì «·ﬁ‰Ê« .</p>
+                </div>
+                
+                <div class="discord-rule">
+                    <h3>4. «” Œœ„ «·ﬁ‰Ê«  »‘ﬂ· ’ÕÌÕ</h3>
+                    <p>«” Œœ„ ﬂ· ﬁ‰«… ··€—÷ «·„Œ’’ ·Â« ›ﬁÿ.</p>
+                </div>
+                
+                <div class="discord-rule">
+                    <h3>5. Õ«›Ÿ ⁄·Ï «·Œ’Ê’Ì…</h3>
+                    <p>„„‰Ê⁄ „‘«—ﬂ… „⁄·Ê„«  ‘Œ’Ì… ·ﬂ √Ê ·√Ì ⁄÷Ê ¬Œ—.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!--  ’„Ì„ «·ÌÊ ÌÊ» -->
+    <div class="youtube-style" id="youtube-style">
+        <div class="youtube-header">
+            <img src="https://www.freepnglogos.com/uploads/youtube-logo-red-hd-13.png" alt="YouTube" class="youtube-logo-small">
+        </div>
+        
+        <div class="youtube-main">
+            <div class="youtube-video">
+                <iframe src="https://www.youtube.com/embed/CAgFYX3XLBg?autoplay=1" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+            </div>
+        </div>
+        
+        <button class="back-button action-button" id="back-from-youtube" style="position: fixed; top: 70px; right: 20px;">«·⁄Êœ…</button>
+    </div>
+    
+    <script>
+        //  √ÀÌ— «·÷—» »«·‘«‘…
+        function screenShake() {
+            document.body.classList.add('screen-shake');
+            setTimeout(() => {
+                document.body.classList.remove('screen-shake');
+            }, 500);
+        }
+        
+        //  √ÀÌ— «·÷Ê¡ «·„ Õ—ﬂ „⁄ «·„«Ê”
+        document.addEventListener('mousemove', function(e) {
+            const light = document.createElement('div');
+            light.className = 'light-effect';
+            light.style.left = e.pageX + 'px';
+            light.style.top = e.pageY + 'px';
+            document.body.appendChild(light);
+            
+            setTimeout(() => {
+                light.remove();
+            }, 100);
+        });
+        
+        // ⁄—÷ ‘«‘… «· Õ„Ì· √Ê·«
+        document.addEventListener('DOMContentLoaded', function() {
+            // »œ¡ ‘—Ìÿ «· ﬁœ„
+            const progressFill = document.querySelector('.progress-fill');
+            let progress = 0;
+            const progressInterval = setInterval(() => {
+                progress += Math.random() * 10;
+                if (progress > 100) progress = 100;
+                progressFill.style.width = progress + '%';
+                
+                if (progress >= 100) {
+                    clearInterval(progressInterval);
+                }
+            }, 200);
+            
+            // ⁄—÷ ‘⁄«— «·œÌ”ﬂÊ—œ √Ê·«
+            setTimeout(function() {
+                document.querySelector('.discord-logo').style.animation = 'fadeIn 1s forwards, pulse 2s infinite';
+                document.querySelector('.loading-text').style.animation = 'fadeIn 1s forwards';
+                
+                // »⁄œ À«‰Ì Ì‰° ⁄—÷ ‘⁄«— «·ÌÊ ÌÊ»
+                setTimeout(function() {
+                    document.querySelector('.youtube-logo').style.animation = 'fadeIn 1s forwards, pulse 2s infinite';
+                    
+                    // »⁄œ 3 ÀÊ«‰Ì ≈÷«›Ì…° ≈Œ›«¡ ‘«‘… «· Õ„Ì· Ê≈ŸÂ«— «·’›Õ… «·—∆Ì”Ì…
+                    setTimeout(function() {
+                        document.querySelector('.loading-screen').style.opacity = '0';
+                        
+                        setTimeout(function() {
+                            document.querySelector('.loading-screen').style.display = 'none';
+                            document.querySelector('.main-page').style.display = 'block';
+                            
+                            //  Õ—Ìﬂ «·⁄‰«’—
+                            document.querySelector('.zg-title').style.transform = 'translateY(0)';
+                            document.querySelector('.zg-title').style.opacity = '1';
+                            
+                            document.querySelectorAll('.option-box').forEach((box, index) => {
+                                setTimeout(() => {
+                                    box.style.transform = 'translateY(0)';
+                                    box.style.opacity = '1';
+                                }, index * 200);
+                            });
+                        }, 500);
+                    }, 3000);
+                }, 2000);
+            }, 500);
+            
+            // ≈ŸÂ«— «·’›Õ… «·—∆Ì”Ì… „⁄  √ÀÌ—
+            document.querySelector('.zg-title').style.transform = 'translateY(-50px)';
+            document.querySelector('.zg-title').style.opacity = '0';
+            
+            document.querySelectorAll('.option-box').forEach(box => {
+                box.style.transform = 'translateY(50px)';
+                box.style.opacity = '0';
+            });
+            
+            // √Õœ«À «·‰ﬁ— ⁄·Ï «·ŒÌ«—«  „⁄  √ÀÌ— «·÷—»
+            document.getElementById('discord-option').addEventListener('click', function() {
+                screenShake();
+                setTimeout(() => {
+                    document.querySelector('.main-page').style.display = 'none';
+                    document.getElementById('discord-style').style.display = 'block';
+                }, 500);
+            });
+            
+            document.getElementById('youtube-option').addEventListener('click', function() {
+                screenShake();
+                setTimeout(() => {
+                    document.querySelector('.main-page').style.display = 'none';
+                    document.getElementById('youtube-style').style.display = 'block';
+                }, 500);
+            });
+            
+            // √“—«— «·⁄Êœ… „⁄  √ÀÌ— «·÷—»
+            document.getElementById('back-from-discord').addEventListener('click', function() {
+                screenShake();
+                setTimeout(() => {
+                    document.getElementById('discord-style').style.display = 'none';
+                    document.querySelector('.main-page').style.display = 'block';
+                }, 500);
+            });
+            
+            document.getElementById('back-from-youtube').addEventListener('click', function() {
+                screenShake();
+                setTimeout(() => {
+                    document.getElementById('youtube-style').style.display = 'none';
+                    document.querySelector('.main-page').style.display = 'block';
+                }, 500);
+            });
+        });
+    </script>
+</body>
+</html>
